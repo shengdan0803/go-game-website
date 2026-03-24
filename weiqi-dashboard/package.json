@@ -1,0 +1,30 @@
+{
+  "name": "weiqi-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "export": "next build && next export"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "framer-motion": "^12.38.0",
+    "html-to-image": "^1.11.13",
+    "next": "^16.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.8.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}

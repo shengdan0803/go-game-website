@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="50" viewBox="0 0 280 50">
+  <!-- 网易Logo -->
+  <g transform="translate(0, 0)">
+    <!-- 网易书法字 -->
+    <text x="35" y="22" font-family="KaiTi, STKaiti, serif" font-size="24" font-weight="bold" fill="#FF0000" text-anchor="middle">网易</text>
+    <!-- NETEASE -->
+    <text x="35" y="38" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#000000" text-anchor="middle" letter-spacing="1">NETEASE</text>
+  </g>
+  
+  <!-- 分隔线 -->
+  <line x1="85" y1="12" x2="85" y2="38" stroke="#CCCCCC" stroke-width="1"/>
+  
+  <!-- 有道纵横Logo -->
+  <g transform="translate(105, 8)">
+    <!-- 黄色圆角方形图标 -->
+    <rect x="0" y="0" width="34" height="34" rx="6" fill="#FFC90E"/>
+    <!-- 白色抽象Z形图案 -->
+    <g fill="white">
+      <rect x="7" y="7" width="8" height="8"/>
+      <rect x="19" y="19" width="8" height="8"/>
+      <circle cx="11" cy="11" r="3"/>
+      <circle cx="23" cy="23" r="3"/>
+    </g>
+    <!-- 有道纵横文字 -->
+    <text x="44" y="23" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="18" font-weight="bold" fill="#333333">有道纵横</text>
+  </g>
+</svg>
