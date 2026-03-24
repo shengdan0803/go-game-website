@@ -7,8 +7,6 @@ weiqi-dashboard/.git
 *.xlsx
 *.xls
 *.pdf
-*.png
-*.jpg
 围棋学情报告生成器/
 AGENTS.md
 BOOTSTRAP.md
@@ -18,3 +16,8 @@ TOOLS.md
 USER.md
 memory/
 .DS_Store
+
+# 允许 public 目录下的图片
+!weiqi-dashboard/public/*.png
+!weiqi-dashboard/public/*.jpg
+!weiqi-dashboard/public/*.svg
