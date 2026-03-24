@@ -44,6 +44,8 @@ next-env.d.ts
 *.txt
 *.backup
 *.old.py
-*.png
-*.jpg
-*.jpeg
+
+# Allow images in public directory
+!weiqi-dashboard/public/*.png
+!weiqi-dashboard/public/*.jpg
+!weiqi-dashboard/public/*.jpeg
