@@ -70,6 +70,117 @@ export default function Home() {
     return filtered;
   };
 
+  // 批量导出所有学员的报告和销售话术
+  const batchExportAll = async () => {
+    const studentsToExport = getFilteredStudentsForList();
+    
+    if (studentsToExport.length === 0) {
+      alert('❌ 没有可导出的学员数据');
+      return;
+    }
+    
+    const confirmed = confirm(`准备导出 ${studentsToExport.length} 名学员的报告和销售话术，这可能需要一些时间。是否继续？`);
+    if (!confirmed) return;
+    
+    setBatchExporting(true);
+    setExportProgress({ current: 0, total: studentsToExport.length });
+    
+    try {
+      const zip = new JSZip();
+      
+      // 动态导入React和ReactDOM
+      const React = await import('react');
+      const ReactDOMClient = await import('react-dom/client');
+      
+      for (let i = 0; i < studentsToExport.length; i++) {
+        const student = studentsToExport[i];
+        setExportProgress({ current: i + 1, total: studentsToExport.length });
+        
+        const studentName = student['学员姓名'] || student.name || `学员${i+1}`;
+        const phone = student['手机'] || student.phone || '';
+        const folderName = phone ? `${studentName}-${phone}` : studentName;
+        
+        console.log(`📸 正在生成 ${studentName} 的报告...`);
+        
+        try {
+          // 生成报告数据
+          const reportData = generateReport(student);
+          
+          if (reportData) {
+            // 创建临时容器
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'fixed';
+            tempContainer.style.left = '-10000px';
+            tempContainer.style.top = '0';
+            tempContainer.style.width = '800px';
+            tempContainer.style.zIndex = '-9999';
+            document.body.appendChild(tempContainer);
+            
+            // 创建报告元素
+            const reportElement = document.createElement('div');
+            reportElement.className = 'report-container';
+            reportElement.style.cssText = 'border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: linear-gradient(to bottom right, #fff7ed, #fef3c7); max-height: none; overflow: visible;';
+            tempContainer.appendChild(reportElement);
+            
+            // 使用ReportPreview组件
+            const root = ReactDOMClient.createRoot(reportElement);
+            root.render(React.createElement(ReportPreview, { student, report: reportData }));
+            
+            // 等待React渲染完成
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // 生成图片
+            const dataUrl = await toPng(reportElement, {
+              quality: 1,
+              pixelRatio: 2,
+              cacheBust: true,
+              backgroundColor: '#fff'
+            });
+            
+            // 转换为base64并添加到ZIP
+            const base64Data = dataUrl.split(',')[1];
+            if (base64Data && base64Data.length > 1000) {
+              zip.file(`${folderName}/${studentName}-${phone}-报告图片.png`, base64Data, {base64: true});
+              console.log(`✅ ${studentName} 的报告图片生成成功`);
+            }
+            
+            // 清理
+            root.unmount();
+            document.body.removeChild(tempContainer);
+          }
+        } catch (error) {
+          console.error(`❌ 生成${studentName}的报告图片失败:`, error);
+        }
+        
+        // 生成销售话术
+        const salesScript = generateSalesScript(student);
+        zip.file(`${folderName}/${studentName}-${phone}-销售话术.txt`, salesScript);
+        
+        // 延迟避免浏览器卡顿
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      
+      // 生成ZIP文件并下载
+      console.log('📦 正在打包ZIP文件...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `围棋学员批量导出-${new Date().toLocaleDateString()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert(`✅ 成功导出 ${studentsToExport.length} 名学员的资料！`);
+      
+    } catch (error) {
+      console.error('❌ 批量导出失败:', error);
+      alert(`❌ 批量导出失败: ${error.message || '未知错误'}`);
+    } finally {
+      setBatchExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+    }
+  };
+
   return (
     <>
       <Head>
@@ -260,96 +371,6 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
     }
   };
 
-  // 批量导出所有学员的报告和销售话术
-  const batchExportAll = async () => {
-    const studentsToExport = getFilteredStudentsForList();
-    
-    if (studentsToExport.length === 0) {
-      alert('❌ 没有可导出的学员数据');
-      return;
-    }
-    
-    const confirmed = confirm(`准备导出 ${studentsToExport.length} 名学员的报告和销售话术，这可能需要一些时间。是否继续？`);
-    if (!confirmed) return;
-    
-    setBatchExporting(true);
-    setExportProgress({ current: 0, total: studentsToExport.length });
-    
-    try {
-      const zip = new JSZip();
-      
-      for (let i = 0; i < studentsToExport.length; i++) {
-        const student = studentsToExport[i];
-        setExportProgress({ current: i + 1, total: studentsToExport.length });
-        
-        const studentName = student['学员姓名'] || student.name || `学员${i+1}`;
-        const phone = student['手机'] || student.phone || '';
-        const folderName = phone ? `${studentName}-${phone}` : studentName;
-        
-        // 生成报告HTML并转换为图片
-        const report = generateReport(student);
-        const reportHtml = `
-          <div style="width: 800px; background: white; padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-            <h1 style="text-align: center; color: #9333ea; margin-bottom: 30px;">围棋学情规划报告</h1>
-            <div style="background: linear-gradient(135deg, #f3e7ff 0%, #fce7f3 50%, #dbeafe 100%); padding: 30px; border-radius: 20px;">
-              ${report}
-            </div>
-          </div>
-        `;
-        
-        // 创建临时DOM元素生成图片
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = reportHtml;
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        document.body.appendChild(tempDiv);
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const dataUrl = await toPng(tempDiv.firstChild, {
-            quality: 1,
-            pixelRatio: 2,
-            cacheBust: true,
-            backgroundColor: '#fff'
-          });
-          
-          // 将dataURL转换为blob
-          const base64Data = dataUrl.split(',')[1];
-          zip.file(`${folderName}/${studentName}-${phone}-报告图片.png`, base64Data, {base64: true});
-        } catch (error) {
-          console.error(`生成${studentName}的报告图片失败:`, error);
-        } finally {
-          document.body.removeChild(tempDiv);
-        }
-        
-        // 生成销售话术
-        const salesScript = generateSalesScript(student);
-        zip.file(`${folderName}/${studentName}-${phone}-销售话术.txt`, salesScript);
-        
-        // 每处理一个学员后稍微延迟，避免浏览器卡顿
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      // 生成ZIP文件并下载
-      console.log('📦 正在打包ZIP文件...');
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(zipBlob);
-      link.download = `围棋学员批量导出-${new Date().toLocaleDateString()}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      alert(`✅ 成功导出 ${studentsToExport.length} 名学员的资料！`);
-      
-    } catch (error) {
-      console.error('❌ 批量导出失败:', error);
-      alert(`❌ 批量导出失败: ${error.message || '未知错误'}`);
-    } finally {
-      setBatchExporting(false);
-      setExportProgress({ current: 0, total: 0 });
-    }
-  };
 
   const selectedReport = selectedStudent ? generateReport(selectedStudent) : null;
 
