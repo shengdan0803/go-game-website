@@ -13,8 +13,15 @@ RUN npm install
 # 复制 weiqi-dashboard 目录的所有文件
 COPY weiqi-dashboard/ .
 
+# 确保 public 目录存在并验证
+RUN ls -la public/ || echo "WARNING: public directory not found!"
+
 # 构建 Next.js 应用
 RUN npm run build
+
+# 验证构建后的文件
+RUN ls -la .next/static/ || echo "WARNING: .next/static not found!"
+RUN test -f public/logonew1.png && echo "✓ logonew1.png found" || echo "✗ logonew1.png NOT found"
 
 # 暴露端口
 EXPOSE 3000
