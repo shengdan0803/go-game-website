@@ -1,12 +1,14 @@
+# Node modules
 weiqi-dashboard/node_modules
 weiqi-dashboard/.next
 weiqi-dashboard/.git
+
+# Git
 .git
 .gitignore
+
+# Documentation
 *.md
-*.xlsx
-*.xls
-*.pdf
 围棋学情报告生成器/
 AGENTS.md
 BOOTSTRAP.md
@@ -15,9 +17,16 @@ MEMORY.md
 TOOLS.md
 USER.md
 memory/
+
+# Data files
+*.xlsx
+*.xls
+*.pdf
+
+# System files
 .DS_Store
 
-# 允许 public 目录下的图片
-!weiqi-dashboard/public/*.png
-!weiqi-dashboard/public/*.jpg
-!weiqi-dashboard/public/*.svg
+# IMPORTANT: Allow public assets
+# These lines MUST come after any wildcard exclusions
+!weiqi-dashboard/public/
+!weiqi-dashboard/public/**
