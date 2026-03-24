@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toPng } from 'html-to-image';
 import { parseExcel, analyzeData, filterByPeriod, getAvailablePeriods, searchStudents } from '../utils/dataProcessor';
 import { generateReport, generateSalesScript } from '../utils/reportGenerator';
 
@@ -176,16 +177,19 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
 
   // 下载报告为PNG图片
   const downloadReportImage = async () => {
-    if (!reportRef.current || !selectedStudent) return;
+    if (!reportRef.current || !selectedStudent) {
+      alert('❌ 没有报告内容可下载');
+      return;
+    }
     
     setDownloading(true);
     
     try {
-      // reportRef指向的就是带滚动条的容器本身
       const container = reportRef.current;
       
-      console.log('📏 下载前容器高度:', container.offsetHeight);
-      console.log('📏 下载前滚动高度:', container.scrollHeight);
+      console.log('📸 开始生成报告图片...');
+      console.log('📏 容器高度:', container.offsetHeight);
+      console.log('📏 滚动高度:', container.scrollHeight);
       
       // 保存原始样式
       const originalMaxHeight = container.style.maxHeight;
@@ -204,16 +208,13 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log('📏 展开后容器高度:', container.offsetHeight);
-      console.log('📏 展开后滚动高度:', container.scrollHeight);
       
-      // 动态导入html-to-image
-      const { toPng } = await import('html-to-image');
-      
-      // 生成PNG数据URL（捕获完整的报告内容）
+      // 生成PNG数据URL
       const dataUrl = await toPng(container, {
         quality: 1,
         pixelRatio: 2,
-        cacheBust: true
+        cacheBust: true,
+        backgroundColor: '#fff'
       });
       
       console.log('✅ 图片生成成功');
@@ -226,16 +227,20 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
       // 下载图片
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `围棋学情规划报告-${selectedStudent['学员姓名'] || selectedStudent.name || '学员'}-${Date.now()}.png`;
+      const studentName = selectedStudent['学员姓名'] || selectedStudent.name || '学员';
+      link.download = `围棋学情规划报告-${studentName}-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
+      console.log('✅ 下载完成');
       alert('✅ 报告已成功下载！');
-      setDownloading(false);
+      
     } catch (error) {
       console.error('❌ 下载失败:', error);
-      alert('❌ 下载失败: ' + error.message);
+      console.error('错误详情:', error.message, error.stack);
+      alert(`❌ 下载失败: ${error.message || '未知错误'}\n\n请尝试刷新页面后重试`);
+    } finally {
       setDownloading(false);
       
       // 确保恢复样式

@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "docx": "^9.6.1",
+    "playwright": "^1.58.2",
+    "puppeteer": "^24.39.1",
+    "puppeteer-core": "^24.39.1",
+    "xlsx": "^0.18.5"
+  },
+  "name": "personal-page",
+  "version": "1.0.0",
+  "description": "",
+  "main": "analyze_popo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

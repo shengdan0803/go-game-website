@@ -1,0 +1,42 @@
+[
+  {
+    "name": "refreshToken",
+    "value": "7e9aa92292b94036995b8b0b57518f0520260317191945",
+    "domain": "docs.popo.netease.com",
+    "path": "/",
+    "expires": 1776338385,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "accessToken",
+    "value": "4F07CFFDB766ABB8537134AAFF5C00CE6DCFBB8A97BC2970D6E8E48192387E4077E1439498E7B50131CB552852054411741D6A8EBF248569",
+    "domain": "docs.popo.netease.com",
+    "path": "/",
+    "expires": 1776424785,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "isVisitor",
+    "value": "0",
+    "domain": "docs.popo.netease.com",
+    "path": "/",
+    "expires": -1,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "identity",
+    "value": "0",
+    "domain": "docs.popo.netease.com",
+    "path": "/",
+    "expires": -1,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  }
+]
