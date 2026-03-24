@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toPng } from 'html-to-image';
+import JSZip from 'jszip';
 import { parseExcel, analyzeData, filterByPeriod, getAvailablePeriods, searchStudents } from '../utils/dataProcessor';
 import { generateReport, generateSalesScript } from '../utils/reportGenerator';
 
@@ -15,6 +16,10 @@ export default function Home() {
   // 学员列表页的筛选状态
   const [studentListPeriod, setStudentListPeriod] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
+  
+  // 批量导出状态
+  const [batchExporting, setBatchExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -109,6 +114,9 @@ export default function Home() {
               searchKeyword={searchKeyword}
               onPeriodChange={setStudentListPeriod}
               onSearchChange={setSearchKeyword}
+              onBatchExport={batchExportAll}
+              batchExporting={batchExporting}
+              exportProgress={exportProgress}
             />
           )}
         </AnimatePresence>
@@ -145,7 +153,7 @@ function HomePage({ onUpload }) {
 }
 
 // 全新的学情规划页面
-function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod, searchKeyword, onPeriodChange, onSearchChange }) {
+function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod, searchKeyword, onPeriodChange, onSearchChange, onBatchExport, batchExporting, exportProgress }) {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [copiedScript, setCopiedScript] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -252,6 +260,97 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
     }
   };
 
+  // 批量导出所有学员的报告和销售话术
+  const batchExportAll = async () => {
+    const studentsToExport = getFilteredStudentsForList();
+    
+    if (studentsToExport.length === 0) {
+      alert('❌ 没有可导出的学员数据');
+      return;
+    }
+    
+    const confirmed = confirm(`准备导出 ${studentsToExport.length} 名学员的报告和销售话术，这可能需要一些时间。是否继续？`);
+    if (!confirmed) return;
+    
+    setBatchExporting(true);
+    setExportProgress({ current: 0, total: studentsToExport.length });
+    
+    try {
+      const zip = new JSZip();
+      
+      for (let i = 0; i < studentsToExport.length; i++) {
+        const student = studentsToExport[i];
+        setExportProgress({ current: i + 1, total: studentsToExport.length });
+        
+        const studentName = student['学员姓名'] || student.name || `学员${i+1}`;
+        const phone = student['手机'] || student.phone || '';
+        const folderName = phone ? `${studentName}-${phone}` : studentName;
+        
+        // 生成报告HTML并转换为图片
+        const report = generateReport(student);
+        const reportHtml = `
+          <div style="width: 800px; background: white; padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+            <h1 style="text-align: center; color: #9333ea; margin-bottom: 30px;">围棋学情规划报告</h1>
+            <div style="background: linear-gradient(135deg, #f3e7ff 0%, #fce7f3 50%, #dbeafe 100%); padding: 30px; border-radius: 20px;">
+              ${report}
+            </div>
+          </div>
+        `;
+        
+        // 创建临时DOM元素生成图片
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = reportHtml;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+        
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const dataUrl = await toPng(tempDiv.firstChild, {
+            quality: 1,
+            pixelRatio: 2,
+            cacheBust: true,
+            backgroundColor: '#fff'
+          });
+          
+          // 将dataURL转换为blob
+          const base64Data = dataUrl.split(',')[1];
+          zip.file(`${folderName}/${studentName}-${phone}-报告图片.png`, base64Data, {base64: true});
+        } catch (error) {
+          console.error(`生成${studentName}的报告图片失败:`, error);
+        } finally {
+          document.body.removeChild(tempDiv);
+        }
+        
+        // 生成销售话术
+        const salesScript = generateSalesScript(student);
+        zip.file(`${folderName}/${studentName}-${phone}-销售话术.txt`, salesScript);
+        
+        // 每处理一个学员后稍微延迟，避免浏览器卡顿
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // 生成ZIP文件并下载
+      console.log('📦 正在打包ZIP文件...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `围棋学员批量导出-${new Date().toLocaleDateString()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert(`✅ 成功导出 ${studentsToExport.length} 名学员的资料！`);
+      
+    } catch (error) {
+      console.error('❌ 批量导出失败:', error);
+      alert(`❌ 批量导出失败: ${error.message || '未知错误'}`);
+    } finally {
+      setBatchExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+    }
+  };
+
   const selectedReport = selectedStudent ? generateReport(selectedStudent) : null;
 
   return (
@@ -268,6 +367,23 @@ function StudentsPage({ students, allStudents, availablePeriods, selectedPeriod,
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-lg"
             />
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={onBatchExport}
+              disabled={batchExporting || students.length === 0}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
+                batchExporting || students.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105'
+              }`}
+            >
+              {batchExporting ? (
+                <>📦 导出中 {exportProgress.current}/{exportProgress.total}</>
+              ) : (
+                <>📦 批量导出 ({students.length}人)</>
+              )}
+            </button>
           </div>
         </div>
         <div className="mt-4 text-sm text-gray-600">
