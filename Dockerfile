@@ -1,5 +1,5 @@
-# 使用 Node.js 官方镜像
-FROM node:18-alpine
+# 使用 Node.js 20 (Next.js 16 要求 >= 20.9.0)
+FROM node:20-alpine
 
 # 设置工作目录
 WORKDIR /app
