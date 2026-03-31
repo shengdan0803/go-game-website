@@ -52,21 +52,21 @@ export function parseExcel(file) {
             }
             
             // 3. 必须有姓名或手机号才算有效学员
-            const name = rowData['学生姓名'] || rowData['学员姓名'] || rowData['孩子昵称'] || '';
-            const phone = String(rowData['下单手机号'] || rowData['手机号'] || '');
+            const name = rowData['学生姓名'] || rowData['学员姓名'] || rowData['孩子昵称'] || rowData['孩子昵称（必填）'] || '';
+            const phone = String(rowData['下单手机号'] || rowData['下单手机号（必填）'] || rowData['手机号'] || '');
             if (!name && !phone) {
               console.log('⚠️ 跳过无效行(无姓名和手机号):', index, rowData);
               return null;
             }
             
-            console.log(`✅ 有效学员 #${index + 1}:`, { name, phone, gender: rowData['孩子性别'] || rowData['性别'] });
+            console.log(`✅ 有效学员 #${index + 1}:`, { name, phone, gender: rowData['孩子性别'] || rowData['孩子性别（必填）'] || rowData['性别'] });
             
             return {
               id: index + 1,
               name: name,
               phone: phone,
-              gender: rowData['孩子性别'] || rowData['性别'] || '',
-              age: rowData['孩子年级'] || rowData['年级'] || '',
+              gender: rowData['孩子性别'] || rowData['孩子性别（必填）'] || rowData['性别'] || '',
+              age: rowData['孩子年级'] || rowData['孩子年级（必填）'] || rowData['年级'] || '',
               city: rowData['学员城市'] || rowData['所在城市'] || '',
               period: rowData['期数'] || '',
               date: formatPeriodToDate(rowData['期数'] || ''),
@@ -74,7 +74,7 @@ export function parseExcel(file) {
               thinkingFocus: normalizeThinkingFocus(rowData['思维培养关注点'] || ''),
               thinkingFocusRaw: rowData['思维培养关注点'] || '',
               competitiveAttitude: rowData['胜负观'] || '',
-              otherCourses: rowData['其他兴趣班'] || rowData['孩子目前在学哪些兴趣班？'] || '',
+              otherCourses: rowData['其他兴趣班'] || rowData['孩子目前在学哪些兴趣班？'] || rowData['孩子目前还在学哪些兴趣班？（您的分享会让老师更加了解孩子，帮孩子定制最适合的学习方案）（必填）'] || '',
               hasWeiqi: (rowData['围棋学习经历'] || '').includes('有') || 
                         (rowData['围棋学习经历'] || '').includes('系统学习') || 
                         (rowData['围棋学习经历'] || '').includes('定段') ||
