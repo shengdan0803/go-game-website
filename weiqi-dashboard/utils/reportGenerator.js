@@ -369,5 +369,5 @@ function generateMatrixD(greeting, name, pronoun, cannotAcceptLoss, hasCalmMind)
 
 ${FIXED_COURSE_PLAN}
 
-
-...(truncated)...
+${fixedClosing}`;
+}
