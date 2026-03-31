@@ -9,13 +9,13 @@ export function generateReport(student) {
     rawData,
   } = student;
 
-  // 从原始数据中提取问卷字段
-  const personality = rawData['学员性格'] || '';
-  const weiqiExperience = rawData['围棋学习经历'] || '';
-  const focusPoint = rawData['思维培养关注点'] || '';
-  const attitude = rawData['胜负观'] || '';
-  const problem = rawData['学围棋想解决的问题'] || '';
-  const otherCourses = rawData['其他兴趣班'] || '';
+  // 从原始数据中提取问卷字段(支持全角括号)
+  const personality = rawData['学员性格'] || rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
+  const weiqiExperience = rawData['围棋学习经历'] || rawData['孩子之前有没有接触过围棋？（必填）'] || '';
+  const focusPoint = rawData['思维培养关注点'] || rawData['在思维培养上，您近期更关注孩子哪一点？（您的选择会帮助老师更好地关注孩子的课堂表现）（必填）'] || '';
+  const attitude = rawData['胜负观'] || rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
+  const problem = rawData['学围棋想解决的问题'] || rawData['您希望孩子学围棋，最想解决哪方面的问题？（必填）'] || '';
+  const otherCourses = rawData['其他兴趣班'] || rawData['孩子目前还在学哪些兴趣班？（您的分享会让老师更加了解孩子，帮孩子定制最适合的学习方案）（必填）'] || '';
 
   // 1. 基础画像
   const profile = {
@@ -230,11 +230,11 @@ export function generateSalesScript(student) {
 
   const name = student.name || '孩子';
   const gender = student.gender || '';
-  const parentName = student.rawData['填写人'] || '家长';
-  const relationship = student.rawData['与孩子关系'] || '';
-  const personality = student.rawData['学员性格'] || '';
-  const weiqiExperience = student.rawData['围棋学习经历'] || '';
-  const attitude = student.rawData['胜负观'] || '';
+  const parentName = student.rawData['填写人'] || student.rawData['填写人（自动）'] || '家长';
+  const relationship = student.rawData['与孩子关系'] || student.rawData['您是孩子的爸爸/妈妈/其他（必填）'] || '';
+  const personality = student.rawData['学员性格'] || student.rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
+  const weiqiExperience = student.rawData['围棋学习经历'] || student.rawData['孩子之前有没有接触过围棋？（必填）'] || '';
+  const attitude = student.rawData['胜负观'] || student.rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
   
   // 根据性别确定人称代词
   const pronoun = gender === '男孩' ? '他' : gender === '女孩' ? '她' : '孩子';
@@ -369,5 +369,5 @@ function generateMatrixD(greeting, name, pronoun, cannotAcceptLoss, hasCalmMind)
 
 ${FIXED_COURSE_PLAN}
 
-${fixedClosing}`;
-}
+
+...(truncated)...
