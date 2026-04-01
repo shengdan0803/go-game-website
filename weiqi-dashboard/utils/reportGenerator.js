@@ -10,12 +10,12 @@ export function generateReport(student) {
   } = student;
 
   // 从原始数据中提取问卷字段(支持全角括号)
-  const personality = rawData['学员性格'] || rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
-  const weiqiExperience = rawData['围棋学习经历'] || rawData['孩子之前有没有接触过围棋？（必填）'] || '';
-  const focusPoint = rawData['思维培养关注点'] || rawData['在思维培养上，您近期更关注孩子哪一点？（您的选择会帮助老师更好地关注孩子的课堂表现）（必填）'] || '';
-  const attitude = rawData['胜负观'] || rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
-  const problem = rawData['学围棋想解决的问题'] || rawData['您希望孩子学围棋，最想解决哪方面的问题？（必填）'] || '';
-  const otherCourses = rawData['其他兴趣班'] || rawData['孩子目前还在学哪些兴趣班？（您的分享会让老师更加了解孩子，帮孩子定制最适合的学习方案）（必填）'] || '';
+  const personality = rawData['学员性格'] || rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）'] || rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
+  const weiqiExperience = rawData['围棋学习经历'] || rawData['孩子之前有没有接触过围棋？'] || rawData['孩子之前有没有接触过围棋？（必填）'] || '';
+  const focusPoint = rawData['思维培养关注点'] || rawData['在思维培养上，您近期更关注孩子哪一点？（您的选择会帮助老师更好地关注孩子的课堂表现）'] || rawData['在思维培养上，您近期更关注孩子哪一点？（您的选择会帮助老师更好地关注孩子的课堂表现）（必填）'] || '';
+  const attitude = rawData['胜负观'] || rawData['孩子平时在面对挑战或输赢时，通常是什么反应？'] || rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
+  const problem = rawData['学围棋想解决的问题'] || rawData['您希望孩子学围棋，最想解决哪方面的问题？'] || rawData['您希望孩子学围棋，最想解决哪方面的问题？（必填）'] || '';
+  const otherCourses = rawData['其他兴趣班'] || rawData['孩子目前还在学哪些兴趣班？（您的分享会让老师更加了解孩子，帮孩子定制最适合的学习方案）'] || rawData['孩子目前还在学哪些兴趣班？（您的分享会让老师更加了解孩子，帮孩子定制最适合的学习方案）（必填）'] || '';
 
   // 1. 基础画像
   const profile = {
@@ -71,25 +71,29 @@ function generateCurrentAnalysis({ personality, weiqiExperience, focusPoint, att
   }
 
   // 2. 围棋经历分析
-  if (weiqiExperience.includes('完全没接触')) {
-    sections.push({
-      icon: '🌟',
-      title: '学习阶段',
-      content: `零基础是${name}的最佳起跑线。抓住启蒙黄金期，我们用游戏化课堂取代枯燥说教，在保护孩子天然兴趣的同时，植入最纯正的规则基因。让孩子在快乐中开启智慧之门，起步即正规，入门即热爱。`,
-    });
-  } else {
-    sections.push({
-      icon: '📈',
-      title: '学习阶段',
-      content: `有基础是${name}的优势，系统化将是${pronoun}的引擎。拒绝零散拼凑，我们致力于构建完整棋理框架。通过专业复盘找病灶、针对性训练破瓶颈，让孩子从"凭感觉下棋"进阶为"凭逻辑赢棋"。`,
-    });
+  if (weiqiExperience) {
+    if (weiqiExperience.includes('完全没接触')) {
+      sections.push({
+        icon: '🌟',
+        title: '学习阶段',
+        content: `零基础是${name}的最佳起跑线。抓住启蒙黄金期，我们用游戏化课堂取代枯燥说教，在保护孩子天然兴趣的同时，植入最纯正的规则基因。让孩子在快乐中开启智慧之门，起步即正规，入门即热爱。`,
+      });
+    } else {
+      // 只要不是"完全没接触",就显示有基础
+      sections.push({
+        icon: '📈',
+        title: '学习阶段',
+        content: `有基础是${name}的优势，系统化将是${pronoun}的引擎。拒绝零散拼凑，我们致力于构建完整棋理框架。通过专业复盘找病灶、针对性训练破瓶颈，让孩子从"凭感觉下棋"进阶为"凭逻辑赢棋"。`,
+      });
+    }
   }
 
-  // 3. 核心诉求匹配
-  const hasFocus = problem.includes('专注') || focusPoint.includes('专注');
-  const hasResilience = problem.includes('抗挫') || attitude.includes('不接受输');
-
-  if (hasFocus) {
+  // 3. 核心能力模块 - 根据problem字段动态显示
+  // 判断是否应该显示全部3个模块(兜底逻辑)
+  const showAllModules = !problem || problem.includes('兴趣') || problem.includes('升学') || problem.includes('加分');
+  
+  // 3.1 专注力培养 - 当problem包含"专注"或显示全部时显示
+  if (showAllModules || problem.includes('专注')) {
     sections.push({
       icon: '⏰',
       title: '专注力培养',
@@ -97,7 +101,8 @@ function generateCurrentAnalysis({ personality, weiqiExperience, focusPoint, att
     });
   }
 
-  if (hasResilience) {
+  // 3.2 抗挫力提升 - 当problem包含"抗挫"/"耐心"或显示全部时显示
+  if (showAllModules || problem.includes('抗挫') || problem.includes('耐心')) {
     sections.push({
       icon: '💪',
       title: '抗挫力提升',
@@ -105,8 +110,8 @@ function generateCurrentAnalysis({ personality, weiqiExperience, focusPoint, att
     });
   }
 
-  // 4. 思维能力分析
-  if (problem.includes('思维') || problem.includes('逻辑') || focusPoint.includes('思维')) {
+  // 3.3 思维能力 - 当problem包含"逻辑"/"思考"/"课内"或显示全部时显示
+  if (showAllModules || problem.includes('逻辑') || problem.includes('思考') || problem.includes('课内')) {
     sections.push({
       icon: '🧩',
       title: '思维能力',
@@ -212,6 +217,22 @@ function generateExpectedValue(otherCourses) {
         content: '书法培养定力与耐心，围棋训练思维的灵动。一静一动，让孩子在沉稳中不失灵活，在思考中不失专注。',
       });
     }
+
+    // 如果没有匹配到任何课程,提供默认的互补项
+    if (values.length === 1) {
+      values.push({
+        icon: '🎯',
+        title: '全面发展',
+        content: '围棋不仅是智力开发的利器，更是与其他学科互补共生的思维基石。无论孩子正在学习艺术、体育还是其他课程，围棋都能提供理性思维和全局视野的支撑，助力孩子实现全面而均衡的成长。',
+      });
+    }
+  } else {
+    // 如果没有填写其他课程,提供默认互补内容
+    values.push({
+      icon: '🎯',
+      title: '全面发展',
+      content: '围棋不仅是智力开发的利器，更是与其他学科互补共生的思维基石。无论孩子正在学习艺术、体育还是其他课程，围棋都能提供理性思维和全局视野的支撑，助力孩子实现全面而均衡的成长。',
+    });
   }
 
   // 长期价值
@@ -231,10 +252,10 @@ export function generateSalesScript(student) {
   const name = student.name || '孩子';
   const gender = student.gender || '';
   const parentName = student.rawData['填写人'] || student.rawData['填写人（自动）'] || '家长';
-  const relationship = student.rawData['与孩子关系'] || student.rawData['您是孩子的爸爸/妈妈/其他（必填）'] || '';
-  const personality = student.rawData['学员性格'] || student.rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
-  const weiqiExperience = student.rawData['围棋学习经历'] || student.rawData['孩子之前有没有接触过围棋？（必填）'] || '';
-  const attitude = student.rawData['胜负观'] || student.rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
+  const relationship = student.rawData['与孩子关系'] || student.rawData['您是孩子的爸爸/妈妈/其他'] || student.rawData['您是孩子的爸爸/妈妈/其他（必填）'] || '';
+  const personality = student.rawData['学员性格'] || student.rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）'] || student.rawData['孩子平时性格是活泼好动型，还是偏安静专注型呢？（您的选择会帮助老师进行适合孩子的上课互动方式）（必填）'] || '';
+  const weiqiExperience = student.rawData['围棋学习经历'] || student.rawData['孩子之前有没有接触过围棋？'] || student.rawData['孩子之前有没有接触过围棋？（必填）'] || '';
+  const attitude = student.rawData['胜负观'] || student.rawData['孩子平时在面对挑战或输赢时，通常是什么反应？'] || student.rawData['孩子平时在面对挑战或输赢时，通常是什么反应？（必填）'] || '';
   
   // 根据性别确定人称代词
   const pronoun = gender === '男孩' ? '他' : gender === '女孩' ? '她' : '孩子';
